@@ -1,43 +1,34 @@
-# ===================================
-# =========== BUILD IMAGE ===========
-# ===================================
-FROM node:22-alpine AS build_image
+# syntax=docker/dockerfile:1
 
-# Set the Current Working Directory inside the container
+FROM node:22-alpine AS deps
 WORKDIR /app
-
-# Copy package.json files
 COPY package.json package-lock.json ./
+RUN npm ci
 
-# Download all dependencies. Dependencies will be cached
-# if the package.json files are not changed
-RUN npm i
-
-# Copy the source from the current directory to
-# the Working Directory inside the container
+FROM node:22-alpine AS build
+WORKDIR /app
+COPY --from=deps /app/node_modules ./node_modules
+COPY package.json package-lock.json ./
 COPY . .
-
-# Compile the website (production build)
 RUN npm run build
 
-# Remove development dependencies
-RUN npm prune --production
-
-# ===================================
-# ========== RUNTIME IMAGE ==========
-# ===================================
-FROM node:22-alpine
-
-# Set the Current Working Directory inside the container
+FROM node:22-alpine AS runtime
 WORKDIR /app
+ENV NODE_ENV=production
+ENV NEXT_TELEMETRY_DISABLED=1
 
-# Adds Bash for env variable access (alpine does not ship w/ Bash)
-RUN apk update && apk add bash
+RUN addgroup --system --gid 1001 nodejs \
+  && adduser --system --uid 1001 nextjs
 
-COPY --from=build_image /app/.next ./.next
-COPY --from=build_image /app/public ./public
-COPY --from=build_image /app/node_modules ./node_modules
-COPY --from=build_image /app/package.json ./package.json
+COPY --from=build --chown=nextjs:nodejs /app/.next ./.next
+COPY --from=build --chown=nextjs:nodejs /app/public ./public
+COPY --from=build --chown=nextjs:nodejs /app/node_modules ./node_modules
+COPY --from=build --chown=nextjs:nodejs /app/package.json ./package.json
 
-# Run it
+USER nextjs
+EXPOSE 3000
+
+HEALTHCHECK --interval=30s --timeout=5s --start-period=20s --retries=3 \
+  CMD node -e "fetch('http://127.0.0.1:3000/').then(r => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))"
+
 CMD ["npm", "run", "start"]
