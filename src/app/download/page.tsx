@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import { XMLParser } from "fast-xml-parser";
-import Image from "next/image";
 import SectionWrapper from "@/components/section-wrapper";
 import { H1, P } from "@/components/text";
 import ReleaseDownloadPage from "./ReleaseDownloadPage";
