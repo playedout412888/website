@@ -36,12 +36,9 @@ export async function loadDocsNavTreeData(
     return contextualizeNavFile(jsonData, activePageSlug);
   } catch (err) {
     if (err instanceof SyntaxError) {
-      throw new Error(
-        `Failed to parse ${docsFilePath}:
-
-${err.message}}`,
-        { cause: err },
-      );
+      throw new Error(`Failed to parse ${docsFilePath}:\n\n${err.message}`, {
+        cause: err,
+      });
     }
     throw err;
   }
@@ -198,8 +195,11 @@ function contextualizeNavTreeNode(
       }
       default:
         throw new Error(
-          `There is an unexpected item in the 'nav.json' file:
-${JSON.stringify(t, null, 2)}`,
+          `There is an unexpected item in the 'nav.json' file:\n${JSON.stringify(
+            t,
+            null,
+            2,
+          )}`,
         );
     }
   };
