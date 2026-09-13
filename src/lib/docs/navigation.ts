@@ -36,9 +36,7 @@ export async function loadDocsNavTreeData(
     return contextualizeNavFile(jsonData, activePageSlug);
   } catch (err) {
     if (err instanceof SyntaxError) {
-      throw new Error(`Failed to parse ${docsFilePath}:\n\n${err.message}`, {
-        cause: err,
-      });
+      throw new Error(`Failed to parse ${docsFilePath}:\n\n${err.message}`);
     }
     throw err;
   }
