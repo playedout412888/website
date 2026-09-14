@@ -19,16 +19,11 @@ env:
 jobs:
   format:
     name: Format checks
-    runs-on: namespace-profile-ghostty-sm
+    runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
-
-      - name: Restore Nix cache
-        uses: namespacelabs/nscloud-cache-action@v1.2.0
-        with:
-          path: /nix
 
       - name: Install Nix
         uses: cachix/install-nix-action@v30
@@ -43,16 +38,11 @@ jobs:
 
   build-and-audit:
     name: Build, typecheck and dependency audit
-    runs-on: namespace-profile-ghostty-sm
+    runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
-
-      - name: Restore Nix cache
-        uses: namespacelabs/nscloud-cache-action@v1.2.0
-        with:
-          path: /nix
 
       - name: Install Nix
         uses: cachix/install-nix-action@v30
@@ -73,7 +63,7 @@ jobs:
 
   docker:
     name: Build production container
-    runs-on: namespace-profile-ghostty-sm
+    runs-on: ubuntu-latest
     timeout-minutes: 30
     needs: [format, build-and-audit]
     steps:
