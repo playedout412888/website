@@ -40,22 +40,15 @@ export async function loadDocsPage(
   docsDirectory: string,
   slug: string,
 ): Promise<DocsPageData> {
-  // A file with a given slug can be located in one of two places.
-  // First we attempt to load the file from the non-index path first.
-  // e.g. `/docs/foo.mdx` will be tried before `/docs/foo/index.mdx`.
   try {
     return await loadDocsPageFromRelativeFilePath(
       nodePath.join(docsDirectory, slug + MDX_EXTENSION),
     );
   } catch (err) {
-    // If we run into an error because the file didn't exist catch this error
-    // because we're going to check the other possible location.
     if (!isErrorWithCode(err) || err.code !== "ENOENT") {
-      // Some other unexpected error occurred
       throw err;
     }
   }
-  // Now we'll attempt to load the index file path.
   return await loadDocsPageFromRelativeFilePath(
     nodePath.join(docsDirectory, slug, `index${MDX_EXTENSION}`),
   );
@@ -77,7 +70,10 @@ async function loadDocsPageFromRelativeFilePath(
     editOnGithubLink: mdxFileContent.data.editOnGithubLink
       ? mdxFileContent.data.editOnGithubLink
       : null,
-    hideSidecar: Object.hasOwn(mdxFileContent.data, "hideSidecar")
+    hideSidecar: Object.prototype.hasOwnProperty.call(
+      mdxFileContent.data,
+      "hideSidecar",
+    )
       ? mdxFileContent.data.hideSidecar
       : false,
     content: createElement(MdxContent),
@@ -85,12 +81,10 @@ async function loadDocsPageFromRelativeFilePath(
   };
 }
 
-// MdxModule is the expected shape of an imported MDX module.
 type MdxModule = {
   default: ComponentType;
 };
 
-// loadMdxComponent loads the statically-compiled MDX React component for one docs file.
 async function loadMdxComponent(
   relativeFilePath: string,
 ): Promise<ComponentType> {
@@ -103,7 +97,6 @@ async function loadMdxComponent(
   return mdxModule.default;
 }
 
-// extractPageHeaders parses MDX source and returns stable heading metadata.
 async function extractPageHeaders(source: string): Promise<PageHeader[]> {
   const pageHeaders: PageHeader[] = [];
   const processor = unified()
@@ -116,7 +109,6 @@ async function extractPageHeaders(source: string): Promise<PageHeader[]> {
   return pageHeaders;
 }
 
-// parseAnchorLinks captures headings into pageHeaders and assigns stable heading IDs.
 function parseAnchorLinks({
   pageHeaders,
 }: {
@@ -135,15 +127,6 @@ function parseAnchorLinks({
   };
 
   return () => {
-    // We need to keep track of how many times that we have encountered a
-    // given header ID, as to ensure that we don't run into any conflicts.
-    // If there is a conflict, the sidecar will run into issues, and only
-    // the first header will be able to be deep-linked to.
-    //
-    // In the event that we encounter a duplicate Header ID, we'll simply
-    // add a suffix to the ID to make it unique. e.g. if there are two headers
-    // with the same name "Foo", the first ID will be "foo", while the second
-    // will be "foo-2".
     const encounteredIDs = new Map<string, number>();
 
     return (node: Node) => {
@@ -153,8 +136,6 @@ function parseAnchorLinks({
           if (headingNode.children.length > 0) {
             const text = headingNode.children.map((v) => v.value).join("");
             const baseId = slugify(text.toLowerCase());
-
-            // If this is not the first occurrence, add a data-index attribute
             const encounteredCount = (encounteredIDs.get(baseId) || 0) + 1;
             encounteredIDs.set(baseId, encounteredCount);
             if (encounteredCount >= 2) {
@@ -189,7 +170,6 @@ function parseAnchorLinks({
   };
 }
 
-// loadAllDocsPageSlugs recursively discovers docs MDX files and returns their slugs.
 export async function loadAllDocsPageSlugs(
   docsDirectory: string,
 ): Promise<Array<string>> {
@@ -203,14 +183,7 @@ export async function loadAllDocsPageSlugs(
     const slug = slugFromRelativeFilePath(relativeFilePath);
     if (docsPageSlugs.has(slug)) {
       throw new Error(
-        `There is a conflict in generating the ${docsDirectory}/${slug} page.
-
-It is likely that both of these files exist:
-  - ${docsDirectory}/${slug}.mdx
-  - ${docsDirectory}/${slug}/index.mdx
-Both of these files resolve to the same URL, and will cause an issue.
-
-To fix this error, delete one of these files.`,
+        `There is a conflict in generating the ${docsDirectory}/${slug} page.\n\nIt is likely that both of these files exist:\n  - ${docsDirectory}/${slug}.mdx\n  - ${docsDirectory}/${slug}/index.mdx\nBoth of these files resolve to the same URL, and will cause an issue.\n\nTo fix this error, delete one of these files.`,
       );
     }
     docsPageSlugs.add(slug);
@@ -218,23 +191,16 @@ To fix this error, delete one of these files.`,
   return Array.from(docsPageSlugs);
 }
 
-// isErrorWithCode narrows unknown values to filesystem-like errors with a code field.
 const isErrorWithCode = (err: unknown): err is Error & { code: unknown } => {
   return err instanceof Error && typeof err === "object" && "code" in err;
 };
 
-// slugFromRelativeFilePath maps a docs MDX file path into a route slug.
 function slugFromRelativeFilePath(relativeFilePath: string): string {
-  return (
-    relativeFilePath
-      // Strip the `.mdx` extension from the filename
-      .replaceAll(MDX_EXTENSION, "")
-      // Include support for index files (`/docs/topic/index.mdx` -> `topic`)
-      .replaceAll(/\/index$/gi, "")
-  );
+  return relativeFilePath
+    .replaceAll(MDX_EXTENSION, "")
+    .replaceAll(/\/index$/gi, "");
 }
 
-// collectAllFilesRecursively returns every file under the given root directory.
 async function collectAllFilesRecursively(root: string): Promise<string[]> {
   const files: string[] = [];
   const entries = await fs.readdir(root, { withFileTypes: true });
