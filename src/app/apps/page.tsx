@@ -70,13 +70,13 @@ const projects: Project[] = [
     capabilities: ["Repossession workflows", "Business application"],
   },
   {
-    name: "Newisholdy / Legacy Workspace",
-    kind: "Workspace",
+    name: "AI Systems Showcase Website",
+    kind: "Application",
     description:
-      "Additional connected project workspace available through the GitHub control plane.",
-    repo: "https://github.com/playedout412888/Newisholdy",
-    status: "Connected",
-    capabilities: ["Source repository", "Project inventory", "Engineering showcase"],
+      "The connected web repository being turned into the public-facing systems, applications, and engineering showcase.",
+    repo: "https://github.com/playedout412888/website",
+    status: "Active",
+    capabilities: ["Portfolio directory", "Product showcase", "Documentation", "Demo videos"],
   },
 ];
 
