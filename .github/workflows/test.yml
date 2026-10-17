@@ -33,6 +33,9 @@ jobs:
       - name: Check Nix formatting
         run: nix develop -c alejandra --check .
 
+      - name: Install locked dependencies (including development tools)
+        run: nix develop -c npm ci --include=dev --no-audit --no-fund
+
       - name: Check source formatting and lint
         run: nix develop -c npm run lint
 
@@ -49,8 +52,8 @@ jobs:
         with:
           nix_path: ${{ env.NIX_PATH }}
 
-      - name: Install locked dependencies
-        run: nix develop -c npm ci
+      - name: Install locked dependencies (including development tools)
+        run: nix develop -c npm ci --include=dev --no-audit --no-fund
 
       - name: Typecheck
         run: nix develop -c npx tsc --noEmit

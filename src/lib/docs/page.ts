@@ -70,10 +70,7 @@ async function loadDocsPageFromRelativeFilePath(
     editOnGithubLink: mdxFileContent.data.editOnGithubLink
       ? mdxFileContent.data.editOnGithubLink
       : null,
-    hideSidecar: Object.prototype.hasOwnProperty.call(
-      mdxFileContent.data,
-      "hideSidecar",
-    )
+    hideSidecar: Object.hasOwn(mdxFileContent.data, "hideSidecar")
       ? mdxFileContent.data.hideSidecar
       : false,
     content: createElement(MdxContent),

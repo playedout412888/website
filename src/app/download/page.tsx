@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import { XMLParser } from "fast-xml-parser";
 import SectionWrapper from "@/components/section-wrapper";
 import { H1, P } from "@/components/text";
@@ -26,10 +27,15 @@ export const metadata: Metadata = {
 };
 
 async function fetchLatestGhosttyVersion(): Promise<string> {
-  const response = await fetch("https://release.files.ghostty.org/appcast.xml", {
-    cache: "force-cache",
-  });
-  if (!response.ok) throw new Error(`Failed to fetch XML: ${response.statusText}`);
+  const response = await fetch(
+    "https://release.files.ghostty.org/appcast.xml",
+    {
+      cache: "force-cache",
+    },
+  );
+  if (!response.ok) {
+    throw new Error(`Failed to fetch XML: ${response.statusText}`);
+  }
 
   const parsedXml = new XMLParser({ ignoreAttributes: false }).parse(
     await response.text(),
@@ -56,12 +62,20 @@ export default async function DownloadPage() {
     <main className={s.downloadPage}>
       <SectionWrapper>
         <div className={s.header}>
-          <img src="/ghostty-logo.svg" alt="" width={27} height={32} />
+          <Image
+            src="/ghostty-logo.svg"
+            alt=""
+            width={27}
+            height={32}
+            priority
+          />
           <H1 className={s.pageTitle}>Download Ghostty</H1>
           {!isTip && (
             <P weight="regular" className={s.versionInfo}>
               Version {latestVersion} -{" "}
-              <a href={`/docs/install/release-notes/${latestVersion.replace(/\./g, "-")}`}>
+              <a
+                href={`/docs/install/release-notes/${latestVersion.replace(/\./g, "-")}`}
+              >
                 Release Notes
               </a>
             </P>
