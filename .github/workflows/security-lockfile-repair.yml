@@ -45,3 +45,4 @@ jobs:
           git add package-lock.json
           git commit -m "fix(deps): apply compatible npm security updates"
           git push origin "HEAD:${GITHUB_REF_NAME}"
+          exit "$audit_fix_status"
